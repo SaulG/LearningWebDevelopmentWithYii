@@ -18,22 +18,31 @@
  * @property integer $update_user_id
  *
  * The followings are the available model relations:
- * @property TblUser $requester
- * @property TblUser $owner
- * @property TblProject $project
+ * @property User $requester
+ * @property User $owner
+ * @property Project $project
  */
-
 class Issue extends TrackStarActiveRecord
 {
-const TYPE_BUG=0;
-const TYPE_FEATURE=1;
-const TYPE_TASK=2;
+	const TYPE_BUG=0;
+	const TYPE_FEATURE=1;
+	const TYPE_TASK=2;
+	
+	const STATUS_NOT_STARTED=0;
+	const STATUS_STARTED=1;
+	const STATUS_FINISHED=2;
+	
+	/**
+	 * Returns the static model of the specified AR class.
+	 * @param string $className active record class name.
+	 * @return Issue the static model class
+	 */
+	public static function model($className=__CLASS__)
+	{
+		return parent::model($className);
+	}
 
-const STATUS_NOT_YET_STARTED=0;
-const STATUS_STARTED=1;
-const STATUS_FINISHED=2;
-
-/**
+	/**
 	 * @return string the associated database table name
 	 */
 	public function tableName()
@@ -49,36 +58,15 @@ const STATUS_FINISHED=2;
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-                    array('name', 'required'),
-                    array('project_id, type_id, status_id, owner_id, requester_id, create_user_id, update_user_id', 'numerical', 'integerOnly'=>true),
-                    array('type_id', 'in', 'range'=>self::getAllowedTypeRange()),
-                    array('status_id', 'in', 'range'=>self::getAllowedStatusRange()),
-                    array('name', 'length', 'max'=>255),
-                    array('description, 'safe'),
-                    // The following rule is used by search().
-                    // @todo Please remove those attributes that should not be searched.
-                    array('id, name, description, project_id, type_id, status_id, owner_id, requester_id, create_time, create_user_id, update_time, update_user_id', 'safe', 'on'=>'search'),
+			array('name', 'required'),
+			array('project_id, type_id, status_id, owner_id, requester_id, create_user_id, update_user_id', 'numerical', 'integerOnly'=>true),
+			array('name', 'length', 'max'=>255),
+			array('description, create_time, update_time', 'safe'),
+			// The following rule is used by search().
+			// Please remove those attributes that should not be searched.
+			array('id, name, description, project_id, type_id, status_id, owner_id, requester_id, create_time, create_user_id, update_time, update_user_id', 'safe', 'on'=>'search'),
 		);
 	}
-        
-        /* @return array of the type ranges */
-        public function getAllowedTypeRange()
-        {
-            return array(
-                self::TYPE_BUG,
-                self::TYPE_FEATURE,
-                self::TYPE_TASK,
-            );
-        }
-        /* @return array of the status ranges */
-        public function getAllowedStatusRange()
-        {
-            return array(
-                self::STATUS_NOT_YET_STARTED,
-                self::STATUS_STARTED,
-                self::STATUS_FINISHED,
-            );
-        }
 
 	/**
 	 * @return array relational rules.
@@ -117,105 +105,79 @@ const STATUS_FINISHED=2;
 
 	/**
 	 * Retrieves a list of models based on the current search/filter conditions.
-	 *
-	 * Typical usecase:
-	 * - Initialize the model fields with values from filter form.
-	 * - Execute this method to get CActiveDataProvider instance which will filter
-	 * models according to data in model fields.
-	 * - Pass data provider to CGridView, CListView or any similar widget.
-	 *
-	 * @return CActiveDataProvider the data provider that can return the models
-	 * based on the search/filter conditions.
+	 * @return CActiveDataProvider the data provider that can return the models based on the search/filter conditions.
 	 */
-	/* public function search() */
-	/* { */
-	/* 	// @todo Please modify the following code to remove attributes that should not be searched. */
-        public function search()
-        {
-       // Warning: Please modify the following code to remove attributes that
-       // should not be searched.
-            $criteria=new CDbCriteria;
-            $criteria->compare('id',$this->id);
-            $criteria->compare('name',$this->name,true);
-            $criteria->compare('description',$this->description,true);
-            $criteria->compare('type_id',$this->type_id);
-            $criteria->compare('status_id',$this->status_id);
-            $criteria->compare('owner_id',$this->owner_id);
-            $criteria->compare('requester_id',$this->requester_id);
-            $criteria->compare('create_time',$this->create_time,true);
-            $criteria->compare('create_user_id',$this->create_user_id);
-            $criteria->compare('update_time',$this->update_time,true);
-            $criteria->compare('update_user_id',$this->update_user_id);
-//            $criteria->condition='project_id= :projectID';
-//            $criteria->params=array(':projectID' => $this->project_id);
-            return new CActiveDataProvider(get_class($this), array(
-                'criteria'=>$criteria,
-            ));
-        }
-	/* 	$criteria=new CDbCriteria; */
-
-	/* 	$criteria->compare('id',$this->id); */
-	/* 	$criteria->compare('name',$this->name,true); */
-	/* 	$criteria->compare('description',$this->description,true); */
-	/* 	$criteria->compare('type_id',$this->type_id); */
-	/* 	$criteria->compare('status_id',$this->status_id); */
-	/* 	$criteria->compare('owner_id',$this->owner_id); */
-	/* 	$criteria->compare('requester_id',$this->requester_id); */
-	/* 	$criteria->compare('create_time',$this->create_time,true); */
-	/* 	$criteria->compare('create_user_id',$this->create_user_id); */
-	/* 	$criteria->compare('update_time',$this->update_time,true); */
-	/* 	$criteria->compare('update_user_id',$this->update_user_id); */
-        /*         $criteria->condition='project_id=:projectID'; */
-        /*         $criteria->params=array(':projectID'=>$this->project_id); */
-                
-	/* 	return new CActiveDataProvider($this, array( */
-	/* 		'criteria'=>$criteria, */
-	/* 	)); */
-	/* } */
-
-	/**
-	 * Returns the static model of the specified AR class.
-	 * Please note that you should have this exact method in all your CActiveRecord descendants!
-	 * @param string $className active record class name.
-	 * @return Issue the static model class
-	 */
-	public static function model($className=__CLASS__)
+	public function search()
 	{
-		return parent::model($className);
+		// Warning: Please modify the following code to remove attributes that
+		// should not be searched.
+
+		$criteria=new CDbCriteria;
+
+		$criteria->compare('id',$this->id);
+		$criteria->compare('name',$this->name,true);
+		$criteria->compare('description',$this->description,true);
+		$criteria->compare('project_id',$this->project_id);
+		$criteria->compare('type_id',$this->type_id);
+		$criteria->compare('status_id',$this->status_id);
+		$criteria->compare('owner_id',$this->owner_id);
+		$criteria->compare('requester_id',$this->requester_id);
+		$criteria->compare('create_time',$this->create_time,true);
+		$criteria->compare('create_user_id',$this->create_user_id);
+		$criteria->compare('update_time',$this->update_time,true);
+		$criteria->compare('update_user_id',$this->update_user_id);
+		$criteria->condition='project_id=:projectID';
+		$criteria->params=array(':projectID'=>$this->project_id);
+
+
+		return new CActiveDataProvider($this, array(
+			'criteria'=>$criteria,
+		));
+	}
+	
+	/**
+	 * Retrieves a list of issue types
+	 * @return Array an array of available issue types.
+	 */
+	public function getTypeOptions()
+	{
+		return array(
+			self::TYPE_BUG=>'Bug',
+			self::TYPE_FEATURE=>'Feature',
+			self::TYPE_TASK=>'Task',
+		);
+	} 
+	
+	/**
+	 * Retrieves a list of issue statuses
+	 * @return Array an array of available issue statuses.
+	 */
+	public function getStatusOptions()
+	{
+		return array(
+			self::STATUS_NOT_STARTED=>'Not Yet Started',
+			self::STATUS_STARTED=>'Started',
+			self::STATUS_FINISHED=>'Finished',
+		);
 	}
 
-       /** 
-         * Retrieves a list of issue types
-         * @return array an array of available issue types
-         */
-        public function getTypeOptions(){
-            return array(
-                self::TYPE_BUG=>'Bug',
-                self::TYPE_FEATURE=>'Feature',
-                self::TYPE_TASK=>'Task',
-            );
-        }
+	/**
+	 * @return string the status text display for the current issue
+	 */ 
+	public function getStatusText()
+	{
+		$statusOptions=$this->statusOptions;
+		return isset($statusOptions[$this->status_id]) ? $statusOptions[$this->status_id] : "unknown status ({$this->status_id})";
+	}
 
-       /** 
-         * Retrieves a list of status
-         * @return array an array of available status types
-         */
-        public function getStatusOptions(){
-            return array(
-                self::STATUS_NOT_YET_STARTED=>'Not yet started',
-                self::STATUS_STARTED=>'Started',
-                self::STATUS_FINISHED=>'Finished',
-            );
-        }
-        
-        public function getStatusText(){
-            $statusOptions = $this->statusOptions;
-            return isset($statusOptions[$this->status_id])? $statusOptions[$this->status_id] : "unkown status ({$this->status_id})";
-        }
-        
-        public function getTypeText(){
-            $typeOptions = $this->typeOptions;
-            return isset($typeOptions[$this->type_id])? $typeOptions[$this->type_id] : "unkown type ({$this->type_id})";
-        }
-        
+	/**
+	 * @return string the type text display for the current issue
+	 */ 
+	public function getTypeText()
+	{
+		$typeOptions=$this->typeOptions;
+		return isset($typeOptions[$this->type_id]) ? $typeOptions[$this->type_id] : "unknown type ({$this->type_id})";
+	}
+
+	
 }

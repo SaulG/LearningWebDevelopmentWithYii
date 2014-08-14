@@ -1,7 +1,4 @@
 <?php
-/* @var $this ProjectController */
-/* @var $model Project */
-
 $this->breadcrumbs=array(
 	'Projects'=>array('index'),
 	$model->name=>array('view','id'=>$model->id),
@@ -18,4 +15,4 @@ $this->menu=array(
 
 <h1>Update Project <?php echo $model->id; ?></h1>
 
-<?php $this->renderPartial('_form', array('model'=>$model)); ?>
+<?php echo $this->renderPartial('_form', array('model'=>$model)); ?>

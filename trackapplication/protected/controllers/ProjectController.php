@@ -15,33 +15,6 @@ class ProjectController extends Controller
 	{
 		return array(
 			'accessControl', // perform access control for CRUD operations
-			'postOnly + delete', // we only allow deletion via POST request
-		);
-	}
-
-	/**
-	 * Specifies the access control rules.
-	 * This method is used by the 'accessControl' filter.
-	 * @return array access control rules
-	 */
-	public function accessRules()
-	{
-		return array(
-			array('allow',  // allow all users to perform 'index' and 'view' actions
-				'actions'=>array('index','view'),
-				'users'=>array('*'),
-			),
-			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('create','update'),
-				'users'=>array('@'),
-			),
-			array('allow', // allow admin user to perform 'admin' and 'delete' actions
-				'actions'=>array('admin','delete'),
-				'users'=>array('admin'),
-			),
-			array('deny',  // deny all users
-				'users'=>array('*'),
-			),
 		);
 	}
 
@@ -49,36 +22,24 @@ class ProjectController extends Controller
 	 * Displays a particular model.
 	 * @param integer $id the ID of the model to be displayed
 	 */
-	/* public function actionView($id) */
-	/* { */
-	/* 	$this->render('view',array( */
-	/* 		'model'=>$this->loadModel($id), */
-	/* 	)); */
-	/* } */
+	public function actionView($id)
+	{
+		$issueDataProvider=new CActiveDataProvider('Issue', array(
+			'criteria'=>array(
+		 		'condition'=>'project_id=:projectId',
+		 		'params'=>array(':projectId'=>$this->loadModel($id)->id),
+		 	),
+		 	'pagination'=>array(
+		 		'pageSize'=>1,
+		 	),
+		 ));
+		
+		$this->render('view',array(
+			'model'=>$this->loadModel($id),
+			'issueDataProvider'=>$issueDataProvider,
+		));
 
-        
-        /**
-         * Displays a particular model.
-         * @param integer $id the ID of the model to be displayed
-         */
-        public function actionView($id)
-        {
-            $issueDataProvider=new CActiveDataProvider('Issue',
-            array(
-                'criteria'=>array(
-                    'condition'=>'project_id=:projectId',
-                    'params'=>array(':projectId'=>$this->loadModel($id)->id),
-                ),
-                'pagination'=>array(
-                    'pageSize'=>1,
-                ),
-            ));
-            $this->render('view',array(
-                'model'=>$this->loadModel($id),
-                'issueDataProvider'=>$issueDataProvider,
-            ));
-        }
-
+	}
 
 	/**
 	 * Creates a new model.
@@ -95,7 +56,20 @@ class ProjectController extends Controller
 		{
 			$model->attributes=$_POST['Project'];
 			if($model->save())
+			{
+				//assign the user creating the new project as an owner of the project, 
+				//so they have access to all project features
+				$form=new ProjectUserForm;
+				$form->username = Yii::app()->user->name;
+				$form->project = $model;
+				$form->role = 'owner';
+				if($form->validate())
+				{
+					$form->assign();
+				}
+					
 				$this->redirect(array('view','id'=>$model->id));
+			}
 		}
 
 		$this->render('create',array(
@@ -134,11 +108,17 @@ class ProjectController extends Controller
 	 */
 	public function actionDelete($id)
 	{
-		$this->loadModel($id)->delete();
+		if(Yii::app()->request->isPostRequest)
+		{
+			// we only allow deletion via POST request
+			$this->loadModel($id)->delete();
 
-		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
-		if(!isset($_GET['ajax']))
-			$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
+			// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
+			if(!isset($_GET['ajax']))
+				$this->redirect(isset($_POST['returnUrl']) ? $_POST['returnUrl'] : array('admin'));
+		}
+		else
+			throw new CHttpException(400,'Invalid request. Please do not repeat this request again.');
 	}
 
 	/**
@@ -166,13 +146,46 @@ class ProjectController extends Controller
 			'model'=>$model,
 		));
 	}
+	
+	/**
+	 * Provides a form so that project administrators can
+	 * associate other users to the project
+	 */
+	public function actionAdduser($id)
+	{
+		$project = $this->loadModel($id);
+		if(!Yii::app()->user->checkAccess('createUser', array('project'=>$project)))
+		{
+			throw new CHttpException(403,'You are not authorized to perform this action.');
+		}
+		
+		$form=new ProjectUserForm; 
+		// collect user input data
+		if(isset($_POST['ProjectUserForm']))
+		{
+			$form->attributes=$_POST['ProjectUserForm'];
+			$form->project = $project;
+			// validate user input  
+			if($form->validate())  
+			{
+				if($form->assign())
+				{
+					Yii::app()->user->setFlash('success',$form->username . " has been added to the project." ); 
+					//reset the form for another user to be associated if desired
+					$form->unsetAttributes();
+					$form->clearErrors();	
+				}
+			}
+		}
+		$form->project = $project;
+		$this->render('adduser',array('model'=>$form)); 
+	}
+	
 
 	/**
 	 * Returns the data model based on the primary key given in the GET variable.
 	 * If the data model is not found, an HTTP exception will be raised.
-	 * @param integer $id the ID of the model to be loaded
-	 * @return Project the loaded model
-	 * @throws CHttpException
+	 * @param integer the ID of the model to be loaded
 	 */
 	public function loadModel($id)
 	{
@@ -184,7 +197,7 @@ class ProjectController extends Controller
 
 	/**
 	 * Performs the AJAX validation.
-	 * @param Project $model the model to be validated
+	 * @param CModel the model to be validated
 	 */
 	protected function performAjaxValidation($model)
 	{

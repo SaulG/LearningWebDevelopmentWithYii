@@ -1,7 +1,4 @@
 <?php
-/* @var $this ProjectController */
-/* @var $dataProvider CActiveDataProvider */
-
 $this->breadcrumbs=array(
 	'Projects',
 );

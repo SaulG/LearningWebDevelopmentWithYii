@@ -53,6 +53,16 @@ return array(
 
 		// uncomment the following to use a MySQL database
 		
+                //Component AuthManager
+                'authManager'=>array(
+                    'class'=>'CDbAuthManager',
+		    'connectionID'=>'db',
+                    'itemTable' => 'tbl_auth_item',
+                    'itemChildTable' => 'tbl_auth_item_child',
+                    'assignmentTable' => 'tbl_auth_assignment',                    
+		),    
+
+
 		'db'=>array(
 			'connectionString' => 'mysql:host=localhost;dbname=trackstar',
 			'emulatePrepare' => true,

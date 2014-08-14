@@ -1,12 +1,10 @@
 <?php
-/* @var $this IssueController */
-/* @var $dataProvider CActiveDataProvider */
-
 $this->breadcrumbs=array(
 	'Issues',
 );
 
 $this->menu=array(
+	//array('label'=>'Manage Issue', 'url'=>array('admin')),
 );
 ?>
 

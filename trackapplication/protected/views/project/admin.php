@@ -1,7 +1,4 @@
 <?php
-/* @var $this ProjectController */
-/* @var $model Project */
-
 $this->breadcrumbs=array(
 	'Projects'=>array('index'),
 	'Manage',
@@ -18,7 +15,7 @@ $('.search-button').click(function(){
 	return false;
 });
 $('.search-form form').submit(function(){
-	$('#project-grid').yiiGridView('update', {
+	$.fn.yiiGridView.update('project-grid', {
 		data: $(this).serialize()
 	});
 	return false;

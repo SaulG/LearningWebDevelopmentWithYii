@@ -23,7 +23,7 @@
  * @property TblProject $project
  */
 
-class Issue extends CActiveRecord
+class Issue extends TrackStarActiveRecord
 {
 const TYPE_BUG=0;
 const TYPE_FEATURE=1;
@@ -54,7 +54,7 @@ const STATUS_FINISHED=2;
                     array('type_id', 'in', 'range'=>self::getAllowedTypeRange()),
                     array('status_id', 'in', 'range'=>self::getAllowedStatusRange()),
                     array('name', 'length', 'max'=>255),
-                    array('description, create_time, update_time', 'safe'),
+                    array('description, 'safe'),
                     // The following rule is used by search().
                     // @todo Please remove those attributes that should not be searched.
                     array('id, name, description, project_id, type_id, status_id, owner_id, requester_id, create_time, create_user_id, update_time, update_user_id', 'safe', 'on'=>'search'),

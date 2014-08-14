@@ -31,9 +31,13 @@ class IssueController extends Controller
 	 */
 	public function actionView($id)
 	{
-		$this->render('view',array(
-			'model'=>$this->loadModel($id),
-		));
+            $issue=$this->loadModel($id, true);
+            $comment=$this->createComment($issue);
+            $this->render('view',array(
+                'model'=>$issue,
+                'comment'=>$comment,
+            ));
+  
 	}
 
 	/**
@@ -141,14 +145,27 @@ class IssueController extends Controller
 	 * If the data model is not found, an HTTP exception will be raised.
 	 * @param integer the ID of the model to be loaded
 	 */
-	public function loadModel($id)
-	{
-		$model=Issue::model()->findByPk($id);
-		if($model===null)
-			throw new CHttpException(404,'The requested page does not exist.');
-		return $model;
-	}
+	/* public function loadModel($id) */
+	/* { */
+	/* 	$model=Issue::model()->findByPk($id); */
+	/* 	if($model===null) */
+	/* 		throw new CHttpException(404,'The requested page does not exist.'); */
+	/* 	return $model; */
+	/* } */
 
+
+        public function loadModel($id, $withComments=false)
+        {
+            if($withComments)
+                $model = Issue::model()->with(array('comments'=>array('with'=>'author')))->findByPk($id);
+            else
+                $model=Issue::model()->findByPk($id);
+            if($model===null)
+                throw new CHttpException(404,'The requested page does not exist.');
+            return $model;
+        }
+        
+        
 	/**
 	 * Performs the AJAX validation.
 	 * @param CModel the model to be validated
@@ -199,5 +216,22 @@ class IssueController extends Controller
 		$filterChain->run(); 
 	} 	
 	
-	
+        /**
+	 * Creates a new comment on an issue
+	 */
+	protected function createComment($issue)
+	{
+            $comment=new Comment;  
+            if(isset($_POST['Comment']))
+                {
+                    $comment->attributes=$_POST['Comment'];
+                    if($issue->addComment($comment))
+			{
+                            Yii::app()->user->setFlash('commentSubmitted',"Your comment has been added." );
+                            $this->refresh();
+			}
+		}
+            return $comment;
+	}	
+        
 }
